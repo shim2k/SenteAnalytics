@@ -8,8 +8,7 @@ export const metadata: Metadata = {
 };
 
 export default function Home() {
-  redirect('/landing');
   return (
-    <></>
+    <div>asdf</div>
   );
 }
