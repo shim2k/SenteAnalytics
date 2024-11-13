@@ -1,5 +1,6 @@
 import express, { Express, NextFunction, Request, Response } from 'express';
 import cookieParser from 'cookie-parser';
+import rateLimit from 'express-rate-limit';
 import cors from 'cors';
 import createError from 'http-errors';
 import helmet from 'helmet';
@@ -7,6 +8,11 @@ import mongoose from 'mongoose';
 import morgan from 'morgan';
 import routes from './routes';
 import type { TServerConfig } from './types';
+
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per windowMs
+});
 
 export class InitServer {
     server: Express;
@@ -30,6 +36,7 @@ export class InitServer {
         this.server.use(morgan('tiny'));
         this.server.use(cookieParser());
         this.server.use(express.json());
+        this.server.use(limiter);
         this.server.use(express.urlencoded({ extended: false }));
 
         // Setup routes

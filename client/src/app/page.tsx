@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-scroll';
 import { FiMenu, FiX } from 'react-icons/fi';
@@ -15,6 +16,40 @@ import {
 
 const LandingPage: React.FC = () => {
   const [navOpen, setNavOpen] = useState(false);
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setSuccessMessage('');
+    setErrorMessage('');
+
+    try {
+      const response = await fetch('https://api.senteai.com/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (response.ok) {
+        setSuccessMessage('Thank you for signing up!');
+        setEmail('');
+      } else {
+        const errorData = await response.json();
+        setErrorMessage(errorData.message || 'Something went wrong. Please try again.');
+      }
+    } catch (error) {
+      setErrorMessage('Unable to connect to the server. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   return (
     <div id="hero" className="bg-gray-100 text-gray-800">
@@ -172,28 +207,40 @@ const LandingPage: React.FC = () => {
           <p className="mb-8 text-xl md:text-2xl text-gray-200">
             Leverage authentic customer dialogues to drive informed decisions.
           </p>
+          <div className="flex flex-col md:flex-row justify-center space-y-4 md:space-y-0 md:space-x-6">
 
-          {/* Mobile Version */}
-          <Link
-            to="signup"
-            smooth={true}
-            offset={100} // Mobile offset
-            duration={800}
-            className="bg-blue-500 text-white font-bold py-4 px-12 rounded-full shadow-lg hover:bg-blue-600 cursor-pointer text-xl block md:hidden"
-          >
-            Start Unlocking Insights
-          </Link>
-          {/* Desktop Version */}
-          <Link
-            to="signup"
-            smooth={true}
-            offset={-10} // Desktop offset
-            duration={800}
-            className="bg-blue-500 text-white font-bold py-4 px-12 rounded-full shadow-lg hover:bg-blue-600 cursor-pointer text-xl hidden md:inline-block"
-          >
-            Start Unlocking Insights
-          </Link>
+            {/* Learn More Button */}
+            <Link
+              to="features"
+              smooth={true}
+              offset={-60}
+              duration={800}
+              className="bg-transparent border border-white text-white font-bold py-4 px-12 rounded-full hover:bg-white hover:text-blue-600 cursor-pointer text-xl"
+            >
+              Learn More
+            </Link>
 
+            {/* Mobile Version */}
+            <Link
+              to="signup"
+              smooth={true}
+              offset={100} // Mobile offset
+              duration={800}
+              className="bg-blue-500 text-white font-bold py-4 px-12 rounded-full shadow-lg hover:bg-blue-600 cursor-pointer text-xl block md:hidden"
+            >
+              Start Unlocking Insights
+            </Link>
+            {/* Desktop Version */}
+            <Link
+              to="signup"
+              smooth={true}
+              offset={-10} // Desktop offset
+              duration={800}
+              className="bg-blue-500 text-white font-bold py-4 px-12 rounded-full shadow-lg hover:bg-blue-600 cursor-pointer text-xl hidden md:inline-block"
+            >
+              Start Unlocking Insights
+            </Link>
+          </div>
         </motion.div>
       </section>
 
@@ -311,20 +358,20 @@ const LandingPage: React.FC = () => {
 
               {[
                 {
-                  title: 'Locate Engaged Communities',
-                  description: 'Discover where your audience is most active online to tap into authentic conversations that matter.',
+                  title: 'We Locate Engaged Communities for You',
+                  description: 'Our software discovers where your audience is most active online, tapping into authentic conversations that matter to your brand.',
                   icon: <FaSearch size={48} className="text-blue-600" aria-label="Search Icon" />,
                   image: '/images/step-1.png',
                 },
                 {
-                  title: 'Analyze Conversations with AI',
-                  description: 'Leverage AI to extract meaningful trends and sentiments from customer discussions.',
+                  title: 'We Analyze Conversations with AI',
+                  description: 'Using advanced AI, we extract meaningful trends and sentiments from customer discussions across various platforms.',
                   icon: <FaRobot size={48} className="text-blue-600" aria-label="Robot Icon" />,
                   image: '/images/step-2.png',
                 },
                 {
-                  title: 'Receive Insightful Reports',
-                  description: 'Get clear, actionable reports that empower confident strategic decisions.',
+                  title: 'You Receive Insightful Reports',
+                  description: 'We provide clear, actionable reports that empower you to make confident strategic decisions.',
                   icon: <FaChartLine size={48} className="text-blue-600" aria-label="Chart Line Icon" />,
                   image: '/images/step-3.png',
                 },
@@ -388,22 +435,46 @@ const LandingPage: React.FC = () => {
           <p className="mb-10 text-xl md:text-2xl">
             Sign up for early access and start making data-driven decisions.
           </p>
-          <form className="max-w-xl mx-auto">
+          <form className="max-w-xl mx-auto" onSubmit={handleFormSubmit}>
             <div className="flex flex-col md:flex-row">
               <motion.input
                 whileFocus={{ scale: 1.02 }}
                 type="email"
                 placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full p-4 rounded-md text-gray-800 mb-4 md:mb-0 md:mr-4"
+                required
               />
+
               <motion.button
                 whileHover={{ scale: 1.05 }}
-                className="bg-white text-blue-600 font-bold py-4 px-6 rounded-md shadow-lg hover:bg-gray-100"
+                className={`bg-white text-blue-600 font-bold py-4 px-6 rounded-md shadow-lg hover:bg-gray-100 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                disabled={loading}
               >
-                Get Early Access
+                {loading ? 'Submitting...' : 'Get Early Access'}
               </motion.button>
             </div>
           </form>
+          {successMessage && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-green-500 mt-4 text-lg"
+            >
+              {successMessage}
+            </motion.p>
+          )}
+
+          {errorMessage && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-red-500 mt-4 text-lg"
+            >
+              {errorMessage}
+            </motion.p>
+          )}
         </motion.div>
       </section>
 
